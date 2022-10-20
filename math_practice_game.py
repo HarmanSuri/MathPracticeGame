@@ -42,10 +42,50 @@ class GameScene(Scene):
         self.guess_correct = None
 
     def ProcessInput(self, events):
-        raise NotImplementedError
+        for e in events:
+            if e.type == py.KEYDOWN:
+                if e.key == py.K_ESCAPE:
+                    self.SwitchToScene(MenuScene())
+                elif (len(self.user_guess) != 0 and self.user_guess != '-') and e.key == py.K_RETURN:
+                    # checks users guess with answer
+                    if int(self.user_guess) == self.answer[0]:
+                        self.guess_correct = True
+                        self.score += 1
+                        self.score_text.text = 'Score: ' + str(self.score)
+                        self.score_text.render()
+                        self.score_text.rect.center = (350, 200)
+                    else:
+                        self.guess_correct = False
+                        self.user_guess = ''
+
+                        # generate new expression and answer
+                        self.expression_list = mgt.generate_expression(
+                            3, ['+', '-'], [1, 10])
+                        self.answer = evaluate_answer(self.expression_list)
+
+                        self.expression = mgt.display_expression(
+                            self.expression_list) + ' = ' + str(self.answer[0])
+                        self.expression_text.text = self.expression
+                        self.expression_text.render()
+                        self.expression_text.rect.center = (350, 375)
+                elif e.key == py.K_BACKSPACE:
+                    self.user_guess = self.user_guess[:-1]
+                elif e.unicode.isnumeric():
+                    # only add numeric input
+                    self.user_guess += e.unicode
+                elif e.unicode == '-':
+                    if len(self.user_guess) == 0:
+                        self.user_guess = '-'
+                    elif self.user_guess[0] == '-':
+                        self.user_guess = self.user_guess[1:]
+                    else:
+                        self.user_guess = '-' + self.user_guess
+                elif e.unicode == '.':
+                    if '.' not in self.user_guess:
+                        self.user_guess += '.'
 
     def Update(self):
-        raise NotImplementedError
+        pass
 
     def Render(self, screen):
         raise NotImplementedError
@@ -78,48 +118,10 @@ def main():
 
     while True:
         for event in py.event.get():
-            if event.type == py.QUIT or event.type == py.KEYDOWN and event.key == py.K_ESCAPE:
+            if event.type == py.QUIT:
                 # exit case for game
                 py.quit()
                 sys.exit()
-            if event.type == py.KEYDOWN:
-                if (len(user_guess) != 0 and user_guess != '-') and event.key == py.K_RETURN:
-                    # checks users guess with answer
-                    if int(user_guess) == answer[0]:
-                        guess_correct = True
-                        score += 1
-                        score_text.text = 'Score: ' + str(score)
-                        score_text.render()
-                        score_text.rect.center = (350, 200)
-                    else:
-                        guess_correct = False
-                    user_guess = ''
-
-                    # generate new expression and answer
-                    expression_list = mgt.generate_expression(
-                        3, ['+', '-'], [1, 10])
-                    answer = evaluate_answer(expression_list)
-
-                    expression = mgt.display_expression(
-                        expression_list) + ' = ' + str(answer[0])
-                    expression_text.text = expression
-                    expression_text.render()
-                    expression_text.rect.center = (350, 375)
-                elif event.key == py.K_BACKSPACE:
-                    user_guess = user_guess[:-1]
-                elif event.unicode.isnumeric():
-                    # only add numeric input
-                    user_guess += event.unicode
-                elif event.unicode == '-':
-                    if len(user_guess) == 0:
-                        user_guess = '-'
-                    elif user_guess[0] == '-':
-                        user_guess = user_guess[1:]
-                    else:
-                        user_guess = '-' + user_guess
-                elif event.unicode == '.':
-                    if '.' not in user_guess:
-                        user_guess += '.'
 
         user_text = GameText(base_font, user_guess, False, (0, 0, 0))
         user_text.rect.center = (350, 450)
