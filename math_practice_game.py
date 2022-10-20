@@ -38,6 +38,9 @@ class GameScene(Scene):
         self.score_text.rect.center = (350, 200)
 
         self.user_guess = ''
+        self.user_text = GameText(
+            self.base_font, self.user_guess, False, (0, 0, 0))
+        self.user_text.rect.center = (350, 450)
 
         self.guess_correct = None
 
@@ -45,7 +48,8 @@ class GameScene(Scene):
         for e in events:
             if e.type == py.KEYDOWN:
                 if e.key == py.K_ESCAPE:
-                    self.SwitchToScene(MenuScene())
+                    pass
+                    # self.SwitchToScene(MenuScene())
                 elif (len(self.user_guess) != 0 and self.user_guess != '-') and e.key == py.K_RETURN:
                     # checks users guess with answer
                     if int(self.user_guess) == self.answer[0]:
@@ -122,9 +126,6 @@ def main():
                 # exit case for game
                 py.quit()
                 sys.exit()
-
-        user_text = GameText(base_font, user_guess, False, (0, 0, 0))
-        user_text.rect.center = (350, 450)
 
         screen.fill((255, 255, 255))
 
