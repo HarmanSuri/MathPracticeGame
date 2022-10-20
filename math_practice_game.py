@@ -7,6 +7,39 @@ from SceneBase import Scene
 class GameScene(Scene):
     def __init__(self):
         super.__init__(self)
+        # basic font for all text
+        self.base_font = py.font.Font(None, 100)
+        self.expression_list = mgt.generate_expression(3, ['+', '-'], [1, 10])
+        # answer of the expression
+        self.answer = evaluate_answer(self.expression_list)
+
+        # expression put into a string
+        self.expression = mgt.display_expression(
+            self.expression_list) + ' = ' + str(self.answer[0])
+        # text objects for expression
+        self.expression_text = GameText(
+            self.base_font, self.expression, False, (0, 0, 0))
+        self.expression_text.rect.center = (350, 375)
+
+        # correct text
+        self.correct_text = GameText(
+            self.base_font, 'CORRECT!', False, (0, 255, 0))
+        self.correct_text.rect.center = (350, 100)
+
+        # incorrect text
+        self.incorrect_text = GameText(
+            self.base_font, 'INCORRECT!', False, (255, 0, 0))
+        self.incorrect_text.rect.center = (350, 100)
+
+        # score text
+        self.score = 0
+        self.score_text = GameText(
+            self.base_font, 'Score: ' + str(self.score), False, (0, 0, 0))
+        self.score_text.rect.center = (350, 200)
+
+        self.user_guess = ''
+
+        self.guess_correct = None
 
     def ProcessInput(self, events):
         raise NotImplementedError
@@ -42,36 +75,6 @@ def evaluate_answer(e):
 def main():
     screen = py.display.set_mode((700, 750))
     clock = py.time.Clock()
-
-    # basic font for all text
-    base_font = py.font.Font(None, 100)
-    expression_list = mgt.generate_expression(3, ['+', '-'], [1, 10])
-    # answer of the expression
-    answer = evaluate_answer(expression_list)
-
-    # expression put into a string
-    expression = mgt.display_expression(
-        expression_list) + ' = ' + str(answer[0])
-    # text objects for expression
-    expression_text = GameText(base_font, expression, False, (0, 0, 0))
-    expression_text.rect.center = (350, 375)
-
-    # correct text
-    correct_text = GameText(base_font, 'CORRECT!', False, (0, 255, 0))
-    correct_text.rect.center = (350, 100)
-
-    # incorrect text
-    incorrect_text = GameText(base_font, 'INCORRECT!', False, (255, 0, 0))
-    incorrect_text.rect.center = (350, 100)
-
-    # score text
-    score = 0
-    score_text = GameText(base_font, 'Score: ' + str(score), False, (0, 0, 0))
-    score_text.rect.center = (350, 200)
-
-    user_guess = ''
-
-    guess_correct = None
 
     while True:
         for event in py.event.get():
