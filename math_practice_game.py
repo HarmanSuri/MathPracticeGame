@@ -56,8 +56,6 @@ class GameScene(Scene):
                         self.guess_correct = True
                         self.score += 1
                         self.score_text.text = 'Score: ' + str(self.score)
-                        self.score_text.render()
-                        self.score_text.rect.center = (350, 200)
                     else:
                         self.guess_correct = False
 
@@ -72,8 +70,6 @@ class GameScene(Scene):
                     self.expression = mgt.display_expression(
                         self.expression_list) + ' = ' + str(self.answer[0])
                     self.expression_text.text = self.expression
-                    self.expression_text.render()
-                    self.expression_text.rect.center = (350, 375)
                 elif e.key == py.K_BACKSPACE:
                     self.user_guess = self.user_guess[:-1]
                 elif e.unicode.isnumeric():
@@ -92,13 +88,20 @@ class GameScene(Scene):
 
         self.user_text = GameText(
             self.base_font, self.user_guess, False, (0, 0, 0))
-        self.user_text.render
-        self.user_text.rect.center = (350, 450)
 
     def Update(self):
         pass
 
     def Render(self, screen):
+        self.score_text.render()
+        self.score_text.rect.center = (350, 200)
+
+        self.expression_text.render()
+        self.expression_text.rect.center = (350, 375)
+
+        self.user_text.render
+        self.user_text.rect.center = (350, 450)
+
         if self.guess_correct is True:
             screen.blit(self.correct_text.surface, self.correct_text.rect)
         elif self.guess_correct is False:
