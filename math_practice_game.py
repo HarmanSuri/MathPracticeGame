@@ -4,6 +4,22 @@ import math_game_terminal as mgt
 from SceneBase import Scene
 
 
+class MenuScene(Scene):
+    def __init__(self):
+        super(MenuScene, self).__init__()
+
+    def ProcessInput(self, events):
+        for e in events:
+            if e.type == py.MOUSEBUTTONDOWN:
+                self.SwitchToScene(GameScene())
+
+    def Update(self):
+        pass
+
+    def Render(self, screen):
+        screen.fill((255, 255, 255))
+
+
 class GameScene(Scene):
     def __init__(self):
         super(GameScene, self).__init__()
@@ -48,8 +64,7 @@ class GameScene(Scene):
         for e in events:
             if e.type == py.KEYDOWN:
                 if e.key == py.K_ESCAPE:
-                    pass
-                    # self.SwitchToScene(MenuScene())
+                    self.SwitchToScene(MenuScene())
                 elif (len(self.user_guess) != 0 and self.user_guess != '-') and e.key == py.K_RETURN:
                     # checks users guess with answer
                     if int(self.user_guess) == self.answer[0]:
@@ -149,6 +164,7 @@ def main():
     active_scene = GameScene()
 
     while True:
+        active_scene = active_scene.next
         filtered_events = []
         for e in py.event.get():
             if e.type == py.QUIT:
