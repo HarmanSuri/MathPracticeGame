@@ -92,7 +92,16 @@ class GameScene(Scene):
         pass
 
     def Render(self, screen):
-        raise NotImplementedError
+        if self.guess_correct is True:
+            screen.blit(self.correct_text.surface, self.correct_text.rect)
+        elif self.guess_correct is False:
+            screen.blit(self.incorrect_text.surface, self.incorrect_text.rect)
+        else:
+            screen.fill((255, 255, 255))
+
+        screen.blit(self.expression_text.surface, self.expression_text.rect)
+        screen.blit(self.user_text.surface, self.user_text.rect)
+        screen.blit(self.score_text.surface, self.score_text.rect)
 
 
 class GameText():
@@ -128,17 +137,6 @@ def main():
                 sys.exit()
 
         screen.fill((255, 255, 255))
-
-        if guess_correct is True:
-            screen.blit(correct_text.surface, correct_text.rect)
-        elif guess_correct is False:
-            screen.blit(incorrect_text.surface, incorrect_text.rect)
-        else:
-            screen.fill((255, 255, 255))
-
-        screen.blit(expression_text.surface, expression_text.rect)
-        screen.blit(user_text.surface, user_text.rect)
-        screen.blit(score_text.surface, score_text.rect)
 
         py.display.update()
 
