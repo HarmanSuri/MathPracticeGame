@@ -6,7 +6,7 @@ from SceneBase import Scene
 
 class GameScene(Scene):
     def __init__(self):
-        super.__init__(self)
+        super(GameScene, self).__init__()
         # basic font for all text
         self.base_font = py.font.Font(None, 100)
         self.expression_list = mgt.generate_expression(3, ['+', '-'], [1, 10])
@@ -60,18 +60,20 @@ class GameScene(Scene):
                         self.score_text.rect.center = (350, 200)
                     else:
                         self.guess_correct = False
-                        self.user_guess = ''
 
-                        # generate new expression and answer
-                        self.expression_list = mgt.generate_expression(
-                            3, ['+', '-'], [1, 10])
-                        self.answer = evaluate_answer(self.expression_list)
+                    # regardless of correctness of guess, reset guess text
+                    self.user_guess = ''
 
-                        self.expression = mgt.display_expression(
-                            self.expression_list) + ' = ' + str(self.answer[0])
-                        self.expression_text.text = self.expression
-                        self.expression_text.render()
-                        self.expression_text.rect.center = (350, 375)
+                    # generate new expression and answer
+                    self.expression_list = mgt.generate_expression(
+                        3, ['+', '-'], [1, 10])
+                    self.answer = evaluate_answer(self.expression_list)
+
+                    self.expression = mgt.display_expression(
+                        self.expression_list) + ' = ' + str(self.answer[0])
+                    self.expression_text.text = self.expression
+                    self.expression_text.render()
+                    self.expression_text.rect.center = (350, 375)
                 elif e.key == py.K_BACKSPACE:
                     self.user_guess = self.user_guess[:-1]
                 elif e.unicode.isnumeric():
@@ -87,6 +89,11 @@ class GameScene(Scene):
                 elif e.unicode == '.':
                     if '.' not in self.user_guess:
                         self.user_guess += '.'
+
+        self.user_text = GameText(
+            self.base_font, self.user_guess, False, (0, 0, 0))
+        self.user_text.render
+        self.user_text.rect.center = (350, 450)
 
     def Update(self):
         pass
@@ -129,14 +136,23 @@ def main():
     screen = py.display.set_mode((700, 750))
     clock = py.time.Clock()
 
+    active_scene = GameScene()
+
     while True:
-        for event in py.event.get():
-            if event.type == py.QUIT:
+        filtered_events = []
+        for e in py.event.get():
+            if e.type == py.QUIT:
                 # exit case for game
                 py.quit()
                 sys.exit()
+            else:
+                filtered_events.append(e)
 
         screen.fill((255, 255, 255))
+
+        active_scene.ProcessInput(filtered_events)
+        active_scene.Update()
+        active_scene.Render(screen)
 
         py.display.update()
 
