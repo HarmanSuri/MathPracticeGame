@@ -76,6 +76,7 @@ class GameScene(Scene):
                     # only add numeric input
                     self.user_guess += e.unicode
                 elif e.unicode == '-':
+                    # make the user guess negative
                     if len(self.user_guess) == 0:
                         self.user_guess = '-'
                     elif self.user_guess[0] == '-':
@@ -83,9 +84,11 @@ class GameScene(Scene):
                     else:
                         self.user_guess = '-' + self.user_guess
                 elif e.unicode == '.':
+                    # add a decimal to the guess
                     if '.' not in self.user_guess:
                         self.user_guess += '.'
 
+        # update the text in user_text
         self.user_text = GameText(
             self.base_font, self.user_guess, False, (0, 0, 0))
 
@@ -93,6 +96,7 @@ class GameScene(Scene):
         pass
 
     def Render(self, screen):
+        # render all GameText objects and change positioning of GameText rects
         self.score_text.render()
         self.score_text.rect.center = (350, 200)
 
@@ -102,13 +106,16 @@ class GameScene(Scene):
         self.user_text.render
         self.user_text.rect.center = (350, 450)
 
+        # display corresponding text depending on correctness of guess
         if self.guess_correct is True:
             screen.blit(self.correct_text.surface, self.correct_text.rect)
         elif self.guess_correct is False:
             screen.blit(self.incorrect_text.surface, self.incorrect_text.rect)
         else:
+            # if it's the first guess don't display correct or incorrect text
             screen.fill((255, 255, 255))
 
+        # display all text on screen
         screen.blit(self.expression_text.surface, self.expression_text.rect)
         screen.blit(self.user_text.surface, self.user_text.rect)
         screen.blit(self.score_text.surface, self.score_text.rect)
