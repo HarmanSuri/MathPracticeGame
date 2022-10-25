@@ -7,6 +7,26 @@ from SceneBase import Scene
 class MenuScene(Scene):
     def __init__(self):
         super(MenuScene, self).__init__()
+        # fonts for menu
+        self.title_font = py.font.Font(None, 100)
+        self.main_font = py.font.Font(None, 50)
+
+        # text objects for options
+        self.title_text = GameText(
+            self.title_font, "OPTIONS", False, (0, 0, 0))
+        self.title_text.rect.center = (350, 100)
+
+        self.n_terms_text = GameText(
+            self.main_font, "Number of terms:", False, (0, 0, 0))
+        self.n_terms_text.rect.midleft = (50, 200)
+
+        self.range_text = GameText(
+            self.main_font, "Range of terms:", False, (0, 0, 0))
+        self.range_text.rect.midleft = (50, 300)
+
+        self.operations_text = GameText(
+            self.main_font, "Operations:", False, (0, 0, 0))
+        self.operations_text.rect.midleft = (50, 400)
 
     def ProcessInput(self, events):
         for e in events:
@@ -18,6 +38,10 @@ class MenuScene(Scene):
 
     def Render(self, screen):
         screen.fill((255, 255, 255))
+        screen.blit(self.title_text.surface, self.title_text.rect)
+        screen.blit(self.n_terms_text.surface, self.n_terms_text.rect)
+        screen.blit(self.range_text.surface, self.range_text.rect)
+        screen.blit(self.operations_text.surface, self.operations_text.rect)
 
 
 class GameScene(Scene):
@@ -118,7 +142,7 @@ class GameScene(Scene):
         self.expression_text.render()
         self.expression_text.rect.center = (350, 375)
 
-        self.user_text.render
+        self.user_text.render()
         self.user_text.rect.center = (350, 450)
 
         # display corresponding text depending on correctness of guess
