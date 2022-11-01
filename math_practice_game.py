@@ -28,6 +28,9 @@ class MenuScene(Scene):
             self.main_font, "Operations:", False, (0, 0, 0))
         self.operations_text.rect.midleft = (50, 400)
 
+        self.selected_ops_text = GameText(
+            self.main_font, "Selected Operations: ", False, (0, 0, 0))
+
         # buttons for operations
         self.plus_button = RectButton(
             self.title_font, (70, 450), (255, 255, 255), (0, 0, 0), "+")
@@ -38,15 +41,19 @@ class MenuScene(Scene):
         self.divide_button = RectButton(
             self.title_font, (400, 450), (255, 255, 255), (0, 0, 0), "÷")
 
+        self.apply_button = RectButton(
+            self.title_font, (250, 650), (255, 255, 255), (0, 0, 0), "APPLY")
+
         self.operations = []
 
     def ProcessInput(self, events):
         for e in events:
-            # if e.type == py.MOUSEBUTTONDOWN:
-            if e.type == py.KEYDOWN and e.key == py.K_RETURN:
-                self.SwitchToScene(GameScene())
-            elif e.type == py.MOUSEBUTTONDOWN:
-                if self.plus_button.click_handler(e.pos):
+            if e.type == py.MOUSEBUTTONDOWN:
+                if self.apply_button.click_handler(e.pos):
+                    self.SwitchToScene(GameScene())
+                # depending on which button is clicked on
+                # add or remove respective operation from list
+                elif self.plus_button.click_handler(e.pos):
                     if '+' in self.operations:
                         self.operations.remove('+')
                     else:
@@ -76,11 +83,20 @@ class MenuScene(Scene):
         self.minus_button.Render(screen)
         self.multiply_button.Render(screen)
         self.divide_button.Render(screen)
+        self.apply_button.Render(screen)
+
+        # add selected operations to resepective text object
+        self.selected_ops_text.text = "Selected Operations: " + \
+            mgt.display_expression(self.operations)
+        self.selected_ops_text.render()
+        self.selected_ops_text.rect.topleft = (50, 550)
 
         screen.blit(self.title_text.surface, self.title_text.rect)
         screen.blit(self.n_terms_text.surface, self.n_terms_text.rect)
         screen.blit(self.range_text.surface, self.range_text.rect)
         screen.blit(self.operations_text.surface, self.operations_text.rect)
+        screen.blit(self.selected_ops_text.surface,
+                    self.selected_ops_text.rect)
 
 
 class GameScene(Scene):
