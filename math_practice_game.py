@@ -28,6 +28,7 @@ class MenuScene(Scene):
             self.main_font, "Operations:", False, (0, 0, 0))
         self.operations_text.rect.midleft = (50, 400)
 
+        # buttons for operations
         self.plus_button = RectButton(
             self.title_font, (70, 450), (255, 255, 255), (0, 0, 0), "+")
         self.minus_button = RectButton(
@@ -37,10 +38,34 @@ class MenuScene(Scene):
         self.divide_button = RectButton(
             self.title_font, (400, 450), (255, 255, 255), (0, 0, 0), "÷")
 
+        self.operations = []
+
     def ProcessInput(self, events):
         for e in events:
-            if e.type == py.MOUSEBUTTONDOWN:
+            # if e.type == py.MOUSEBUTTONDOWN:
+            if e.type == py.KEYDOWN and e.key == py.K_RETURN:
                 self.SwitchToScene(GameScene())
+            elif e.type == py.MOUSEBUTTONDOWN:
+                if self.plus_button.click_handler(e.pos):
+                    if '+' in self.operations:
+                        self.operations.remove('+')
+                    else:
+                        self.operations.append('+')
+                elif self.minus_button.click_handler(e.pos):
+                    if '-' in self.operations:
+                        self.operations.remove('-')
+                    else:
+                        self.operations.append('-')
+                elif self.multiply_button.click_handler(e.pos):
+                    if '*' in self.operations:
+                        self.operations.remove('*')
+                    else:
+                        self.operations.append('*')
+                elif self.divide_button.click_handler(e.pos):
+                    if '/' in self.operations:
+                        self.operations.remove('/')
+                    else:
+                        self.operations.append('/')
 
     def Update(self):
         pass
