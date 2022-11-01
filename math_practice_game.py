@@ -49,8 +49,8 @@ class MenuScene(Scene):
     def ProcessInput(self, events):
         for e in events:
             if e.type == py.MOUSEBUTTONDOWN:
-                if self.apply_button.click_handler(e.pos):
-                    self.SwitchToScene(GameScene())
+                if self.apply_button.click_handler(e.pos) and self.operations:
+                    self.SwitchToScene(GameScene(self.operations))
                 # depending on which button is clicked on
                 # add or remove respective operation from list
                 elif self.plus_button.click_handler(e.pos):
@@ -100,11 +100,12 @@ class MenuScene(Scene):
 
 
 class GameScene(Scene):
-    def __init__(self):
+    def __init__(self, operations):
         super(GameScene, self).__init__()
+        self.ops = operations
         # basic font for all text
         self.base_font = py.font.Font(None, 100)
-        self.expression_list = mgt.generate_expression(3, ['+', '-'], [1, 10])
+        self.expression_list = mgt.generate_expression(3, self.ops, [1, 10])
         # answer of the expression
         self.answer = evaluate_answer(self.expression_list)
 
@@ -158,7 +159,7 @@ class GameScene(Scene):
 
                     # generate new expression and answer
                     self.expression_list = mgt.generate_expression(
-                        3, ['+', '-'], [1, 10])
+                        3, self.ops, [1, 10])
                     self.answer = evaluate_answer(self.expression_list)
 
                     self.expression = mgt.display_expression(
@@ -305,7 +306,7 @@ def main():
     screen = py.display.set_mode((700, 750))
     clock = py.time.Clock()
 
-    active_scene = GameScene()
+    active_scene = MenuScene()
 
     while True:
         active_scene = active_scene.next
