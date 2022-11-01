@@ -28,6 +28,15 @@ class MenuScene(Scene):
             self.main_font, "Operations:", False, (0, 0, 0))
         self.operations_text.rect.midleft = (50, 400)
 
+        self.plus_button = RectButton(
+            self.title_font, (70, 450), (255, 255, 255), (0, 0, 0), "+")
+        self.minus_button = RectButton(
+            self.title_font, (180, 450), (255, 255, 255), (0, 0, 0), "-")
+        self.multiply_button = RectButton(
+            self.title_font, (290, 450), (255, 255, 255), (0, 0, 0), "×")
+        self.divide_button = RectButton(
+            self.title_font, (400, 450), (255, 255, 255), (0, 0, 0), "÷")
+
     def ProcessInput(self, events):
         for e in events:
             if e.type == py.MOUSEBUTTONDOWN:
@@ -38,6 +47,11 @@ class MenuScene(Scene):
 
     def Render(self, screen):
         screen.fill((255, 255, 255))
+        self.plus_button.Render(screen)
+        self.minus_button.Render(screen)
+        self.multiply_button.Render(screen)
+        self.divide_button.Render(screen)
+
         screen.blit(self.title_text.surface, self.title_text.rect)
         screen.blit(self.n_terms_text.surface, self.n_terms_text.rect)
         screen.blit(self.range_text.surface, self.range_text.rect)
@@ -161,19 +175,84 @@ class GameScene(Scene):
 
 
 class GameText():
-    def __init__(self, font, text, antialias, color, background=None):
+    def __init__(self, font, text, antialias, colour):
         self.font = font
         self.text = text
         self.antialias = antialias
-        self.color = color
+        self.colour = colour
         self.surface = self.font.render(
-            self.text, self.antialias, self.color)
+            self.text, self.antialias, self.colour)
         self.rect = self.surface.get_rect()
 
     def render(self):
         self.surface = self.font.render(
-            self.text, self.antialias, self.color)
+            self.text, self.antialias, self.colour)
         self.rect = self.surface.get_rect()
+
+
+class RectButton():
+    def __init__(self, font, pos, background, text_colour, text=""):
+        self.font = font
+        self.pos = pos
+        self.background = background
+        self.text = GameText(self.font, text, False, text_colour)
+        self.text.rect.topleft = self.pos
+        self.rect = py.Rect(self.pos, self.text.surface.get_size())
+
+    def click_handler(self, mouse_pos):
+        if self.rect.collidepoint(mouse_pos):
+            return True
+
+        return False
+
+    def Render(self, screen):
+        py.draw.rect(screen, self.background, self.rect)
+        screen.blit(self.text.surface, self.text.rect)
+
+
+class InputBox():
+    def __init__(self, rect, active_colour, passive_colour, font, text_limit=None):
+        self.rect = rect
+        self.active_colour = active_colour
+        self.passive_colour = passive_colour
+
+        self.colour = self.passive_colour
+        self.active = False
+
+        self.font = font
+        self.text = ''
+        self.text_limit = text_limit
+
+    def ProcessInput(self, events):
+        for event in events:
+            if event.type == py.MOUSEBUTTONDOWN:
+                if self.rect.collidepoint(event.pos):
+                    self.active = True
+                else:
+                    self.active = False
+
+            if event.type == py.KEYDOWN and self.active:
+                if event.key == py.K_BACKSPACE:
+                    self.text = self.text[:-1]
+                elif event.unicode.isdigit() and (self.text_limit is None or len(self.text) < self.text_limit):
+                    self.text += event.unicode
+
+    def Render(self, screen):
+        if self.active:
+            self.colour = self.active_colour
+        else:
+            self.colour = self.passive_colour
+
+        # draw rectangle and argument passed which should
+        py.draw.rect(screen, self.colour, self.rect)
+
+        text_surface = self.font.render(self.text, True, (255, 255, 255))
+
+        screen.blit(text_surface, (self.rect.x + 5, self.rect.y + 5))
+
+        # set width of textfield so that text cannot get
+        # outside of user's text input
+        self.rect.w = max(100, text_surface.get_width() + 10)
 
 
 def evaluate_answer(e):
