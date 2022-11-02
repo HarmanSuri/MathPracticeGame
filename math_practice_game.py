@@ -26,10 +26,13 @@ class MenuScene(Scene):
 
         self.operations_text = GameText(
             self.main_font, "Operations:", False, (0, 0, 0))
-        self.operations_text.rect.midleft = (50, 400)
+        self.operations_text.rect.midleft = (50, 445)
 
         self.selected_ops_text = GameText(
             self.main_font, "Selected Operations: ", False, (0, 0, 0))
+
+        self.dash_text = GameText(self.main_font, "-", False, (0, 0, 0))
+        self.dash_text.rect.midleft = (425, 300)
 
         # buttons for operations
         self.plus_button = RectButton(
@@ -46,11 +49,28 @@ class MenuScene(Scene):
 
         self.operations = []
 
+        self.num_terms_input = InputBox(
+            py.Rect((350, 180), (40, 40)), (200, 200, 200), (100, 100, 100), self.main_font, 2)
+        self.min_range_input = InputBox(
+            py.Rect((350, 280), (40, 40)), (200, 200, 200), (100, 100, 100), self.main_font, 3)
+        self.max_range_input = InputBox(
+            py.Rect((450, 280), (40, 40)), (200, 200, 200), (100, 100, 100), self.main_font, 3)
+
     def ProcessInput(self, events):
+        num_terms = int(
+            self.num_terms_input.text) if self.num_terms_input.text else 0
+        min_range = int(
+            self.min_range_input.text) if self.min_range_input.text else 0
+        max_range = int(
+            self.max_range_input.text) if self.max_range_input.text else 0
+        term_range = [min_range, max_range] if min_range < max_range else []
+
+        input_given = num_terms and term_range
         for e in events:
             if e.type == py.MOUSEBUTTONDOWN:
-                if self.apply_button.click_handler(e.pos) and self.operations:
-                    self.SwitchToScene(GameScene(self.operations))
+                if self.apply_button.click_handler(e.pos) and input_given:
+                    self.SwitchToScene(
+                        GameScene(self.operations, num_terms, term_range))
                 # depending on which button is clicked on
                 # add or remove respective operation from list
                 elif self.plus_button.click_handler(e.pos):
@@ -73,6 +93,9 @@ class MenuScene(Scene):
                         self.operations.remove('/')
                     else:
                         self.operations.append('/')
+            self.num_terms_input.ProcessInput(e)
+            self.min_range_input.ProcessInput(e)
+            self.max_range_input.ProcessInput(e)
 
     def Update(self):
         pass
@@ -84,6 +107,10 @@ class MenuScene(Scene):
         self.multiply_button.Render(screen)
         self.divide_button.Render(screen)
         self.apply_button.Render(screen)
+
+        self.num_terms_input.Render(screen)
+        self.min_range_input.Render(screen)
+        self.max_range_input.Render(screen)
 
         # add selected operations to resepective text object
         self.selected_ops_text.text = "Selected Operations: " + \
@@ -97,15 +124,19 @@ class MenuScene(Scene):
         screen.blit(self.operations_text.surface, self.operations_text.rect)
         screen.blit(self.selected_ops_text.surface,
                     self.selected_ops_text.rect)
+        screen.blit(self.dash_text.surface, self.dash_text.rect)
 
 
 class GameScene(Scene):
-    def __init__(self, operations):
+    def __init__(self, operations, num_terms, term_range):
         super(GameScene, self).__init__()
         self.ops = operations
+        self.num_terms = num_terms
+        self.term_range = term_range
         # basic font for all text
         self.base_font = py.font.Font(None, 100)
-        self.expression_list = mgt.generate_expression(3, self.ops, [1, 10])
+        self.expression_list = mgt.generate_expression(
+            3, self.ops, self.term_range)
         # answer of the expression
         self.answer = evaluate_answer(self.expression_list)
 
@@ -159,7 +190,7 @@ class GameScene(Scene):
 
                     # generate new expression and answer
                     self.expression_list = mgt.generate_expression(
-                        3, self.ops, [1, 10])
+                        self.num_terms, self.ops, self.term_range)
                     self.answer = evaluate_answer(self.expression_list)
 
                     self.expression = mgt.display_expression(
@@ -265,19 +296,18 @@ class InputBox():
         self.text = ''
         self.text_limit = text_limit
 
-    def ProcessInput(self, events):
-        for event in events:
-            if event.type == py.MOUSEBUTTONDOWN:
-                if self.rect.collidepoint(event.pos):
-                    self.active = True
-                else:
-                    self.active = False
+    def ProcessInput(self, event):
+        if event.type == py.MOUSEBUTTONDOWN:
+            if self.rect.collidepoint(event.pos):
+                self.active = True
+            else:
+                self.active = False
 
-            if event.type == py.KEYDOWN and self.active:
-                if event.key == py.K_BACKSPACE:
-                    self.text = self.text[:-1]
-                elif event.unicode.isdigit() and (self.text_limit is None or len(self.text) < self.text_limit):
-                    self.text += event.unicode
+        if event.type == py.KEYDOWN and self.active:
+            if event.key == py.K_BACKSPACE:
+                self.text = self.text[:-1]
+            elif event.unicode.isdigit() and (self.text_limit is None or len(self.text) < self.text_limit):
+                self.text += event.unicode
 
     def Render(self, screen):
         if self.active:
@@ -294,7 +324,7 @@ class InputBox():
 
         # set width of textfield so that text cannot get
         # outside of user's text input
-        self.rect.w = max(100, text_surface.get_width() + 10)
+        self.rect.w = max(self.rect.w, text_surface.get_width() + 10)
 
 
 def evaluate_answer(e):
