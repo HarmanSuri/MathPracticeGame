@@ -4,6 +4,27 @@ import math_game_terminal as mgt
 from SceneBase import Scene
 
 
+def wrap_text(screen, font, text, pos, max_width):
+    words = text.split()
+    line = ''
+    line_width = 0
+    lines = []
+
+    while len(words):
+        line += words.pop(0) + ' '
+        line_surf = font.render(line, False, (0, 0, 0))
+        line_width = line_surf.get_width()
+        if line_width > max_width or len(words) == 0:
+            lines.append(line_surf)
+            line = ''
+            line_width = 0
+
+    offset = 0
+    for ln in lines:
+        screen.blit(ln, (pos[0], pos[1] + offset))
+        offset += ln.get_size()[1] + 10
+
+
 class MenuScene(Scene):
     def __init__(self):
         super(MenuScene, self).__init__()
@@ -138,11 +159,11 @@ class GameScene(Scene):
         self.expression_list = mgt.generate_expression(
             3, self.ops, self.term_range)
         # answer of the expression
-        self.answer = evaluate_answer(self.expression_list)
+        self.answer = round(evaluate_answer(self.expression_list)[0], 2)
 
         # expression put into a string
         self.expression = mgt.display_expression(
-            self.expression_list) + ' = ' + str(self.answer[0])
+            self.expression_list) + ' = ?'
         # text objects for expression
         self.expression_text = GameText(
             self.base_font, self.expression, False, (0, 0, 0))
@@ -167,7 +188,7 @@ class GameScene(Scene):
         self.user_guess = ''
         self.user_text = GameText(
             self.base_font, self.user_guess, False, (0, 0, 0))
-        self.user_text.rect.center = (350, 450)
+        self.user_text.rect.center = (350, 690)
 
         self.guess_correct = None
 
@@ -178,7 +199,7 @@ class GameScene(Scene):
                     self.SwitchToScene(MenuScene())
                 elif (len(self.user_guess) != 0 and self.user_guess != '-') and e.key == py.K_RETURN:
                     # checks users guess with answer
-                    if int(self.user_guess) == self.answer[0]:
+                    if float(self.user_guess) == self.answer:
                         self.guess_correct = True
                         self.score += 1
                         self.score_text.text = 'Score: ' + str(self.score)
@@ -191,10 +212,11 @@ class GameScene(Scene):
                     # generate new expression and answer
                     self.expression_list = mgt.generate_expression(
                         self.num_terms, self.ops, self.term_range)
-                    self.answer = evaluate_answer(self.expression_list)
+                    self.answer = round(evaluate_answer(
+                        self.expression_list)[0], 2)
 
                     self.expression = mgt.display_expression(
-                        self.expression_list) + ' = ' + str(self.answer[0])
+                        self.expression_list) + ' = ?'
                     self.expression_text.text = self.expression
                 elif e.key == py.K_BACKSPACE:
                     self.user_guess = self.user_guess[:-1]
@@ -230,7 +252,7 @@ class GameScene(Scene):
         self.expression_text.rect.center = (350, 375)
 
         self.user_text.render()
-        self.user_text.rect.center = (350, 450)
+        self.user_text.rect.center = (350, 690)
 
         # display corresponding text depending on correctness of guess
         if self.guess_correct is True:
@@ -242,7 +264,10 @@ class GameScene(Scene):
             screen.fill((255, 255, 255))
 
         # display all text on screen
-        screen.blit(self.expression_text.surface, self.expression_text.rect)
+        wrap_text(screen, self.base_font,
+                  self.expression_text.text, (40, 250), 590)
+        # screen.blit(self.expression_text.surface, self.expression_text.rect)
+
         screen.blit(self.user_text.surface, self.user_text.rect)
         screen.blit(self.score_text.surface, self.score_text.rect)
 
