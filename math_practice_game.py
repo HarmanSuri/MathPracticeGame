@@ -5,28 +5,43 @@ from SceneBase import Scene
 
 
 def wrap_text(screen, font, text, pos, max_width):
+    """
+    renders lines of text to screen, going to a new line to
+    prevent exceeding max width
+
+    param screen: destentation to render text
+    param font: pygame.font.Font object, used to create text surface
+    param text: text to be rendered
+    param pos: position to where text should be rendered (topleft)
+    param max_width: defines max width of a single line of text, before newline
+    """
     words = text.split()
     line = ''
     line_width = 0
-    lines = []
+    offset = 0
 
     while len(words):
         line += words.pop(0) + ' '
         line_surf = font.render(line, False, (0, 0, 0))
         line_width = line_surf.get_width()
+
         if line_width > max_width or len(words) == 0:
-            lines.append(line_surf)
+            screen.blit(line_surf, (pos[0], pos[1] + offset))
+            offset += line_surf.get_size()[1] + 10
             line = ''
             line_width = 0
 
-    offset = 0
-    for ln in lines:
-        screen.blit(ln, (pos[0], pos[1] + offset))
-        offset += ln.get_size()[1] + 10
-
 
 class MenuScene(Scene):
+    """
+    Creates a Scene for the menu, includes all variables for displayed text
+    and options for player
+    """
+
     def __init__(self):
+        """
+        Initialize all variables for displayed text, buttons and input boxes.
+        """
         super(MenuScene, self).__init__()
         # fonts for menu
         self.title_font = py.font.Font(None, 100)
@@ -70,6 +85,7 @@ class MenuScene(Scene):
 
         self.operations = []
 
+        # input boxes for all game options
         self.num_terms_input = InputBox(
             py.Rect((350, 180), (40, 40)), (200, 200, 200), (100, 100, 100), self.main_font, 2)
         self.min_range_input = InputBox(
@@ -78,6 +94,14 @@ class MenuScene(Scene):
             py.Rect((450, 280), (40, 40)), (200, 200, 200), (100, 100, 100), self.main_font, 3)
 
     def ProcessInput(self, events):
+        """
+        Takes events from game loop and handles them as needed in the Menu.
+
+        param events: pygame events passed in from game loop
+        """
+
+        # get all inputted options from player and save in separate variables
+        # set to 0 if no input was given
         num_terms = int(
             self.num_terms_input.text) if self.num_terms_input.text else 0
         min_range = int(
@@ -86,10 +110,13 @@ class MenuScene(Scene):
             self.max_range_input.text) if self.max_range_input.text else 0
         term_range = [min_range, max_range] if min_range < max_range else []
 
+        # if all inputs were given this will be True
         input_given = num_terms and term_range
+
         for e in events:
             if e.type == py.MOUSEBUTTONDOWN:
                 if self.apply_button.click_handler(e.pos) and input_given:
+                    # switch to GameScene, passing in options, only if all options are given
                     self.SwitchToScene(
                         GameScene(self.operations, num_terms, term_range))
                 # depending on which button is clicked on
@@ -114,6 +141,7 @@ class MenuScene(Scene):
                         self.operations.remove('/')
                     else:
                         self.operations.append('/')
+            # given event, process inputs for all input boxes
             self.num_terms_input.ProcessInput(e)
             self.min_range_input.ProcessInput(e)
             self.max_range_input.ProcessInput(e)
@@ -122,23 +150,33 @@ class MenuScene(Scene):
         pass
 
     def Render(self, screen):
+        """
+        Render all text, buttons and input boxes to given surface.
+
+        param screen: a pygame display that is passed in from main.
+        """
+
         screen.fill((255, 255, 255))
+
+        # render all buttons
         self.plus_button.Render(screen)
         self.minus_button.Render(screen)
         self.multiply_button.Render(screen)
         self.divide_button.Render(screen)
         self.apply_button.Render(screen)
 
+        # render all inputs boxes
         self.num_terms_input.Render(screen)
         self.min_range_input.Render(screen)
         self.max_range_input.Render(screen)
 
-        # add selected operations to resepective text object
+        # add selected operations to respective text object
         self.selected_ops_text.text = "Selected Operations: " + \
             mgt.display_expression(self.operations)
         self.selected_ops_text.render()
         self.selected_ops_text.rect.topleft = (50, 550)
 
+        # display all text on screen
         screen.blit(self.title_text.surface, self.title_text.rect)
         screen.blit(self.n_terms_text.surface, self.n_terms_text.rect)
         screen.blit(self.range_text.surface, self.range_text.rect)
@@ -149,13 +187,23 @@ class MenuScene(Scene):
 
 
 class GameScene(Scene):
+    """
+    Creates a Scene for the main game, includes all variables for displayed text,
+    including math expression and score, and ability for player to enter answer.
+    """
+
     def __init__(self, operations, num_terms, term_range):
+        """
+        Initialize all variables for displayed text and game variables.
+        """
         super(GameScene, self).__init__()
         self.ops = operations
         self.num_terms = num_terms
         self.term_range = term_range
+
         # basic font for all text
         self.base_font = py.font.Font(None, 100)
+
         self.expression_list = mgt.generate_expression(
             3, self.ops, self.term_range)
         # answer of the expression
@@ -185,6 +233,7 @@ class GameScene(Scene):
             self.base_font, 'Score: ' + str(self.score), False, (0, 0, 0))
         self.score_text.rect.center = (350, 200)
 
+        # user guess text
         self.user_guess = ''
         self.user_text = GameText(
             self.base_font, self.user_guess, False, (0, 0, 0))
@@ -193,14 +242,21 @@ class GameScene(Scene):
         self.guess_correct = None
 
     def ProcessInput(self, events):
+        """
+        Takes events from game loop and handles them as needed in the Game.
+
+        param events: pygame events passed in from game loop
+        """
         for e in events:
             if e.type == py.KEYDOWN:
                 if e.key == py.K_ESCAPE:
+                    # go back to Menu if escape it pressed
                     self.SwitchToScene(MenuScene())
                 elif (len(self.user_guess) != 0 and self.user_guess != '-') and e.key == py.K_RETURN:
                     # checks users guess with answer
                     if float(self.user_guess) == self.answer:
                         self.guess_correct = True
+                        # if correct update score
                         self.score += 1
                         self.score_text.text = 'Score: ' + str(self.score)
                     else:
@@ -218,7 +274,9 @@ class GameScene(Scene):
                     self.expression = mgt.display_expression(
                         self.expression_list) + ' = ?'
                     self.expression_text.text = self.expression
+
                 elif e.key == py.K_BACKSPACE:
+                    # delete one character in user's guess
                     self.user_guess = self.user_guess[:-1]
                 elif e.unicode.isnumeric():
                     # only add numeric input
@@ -228,6 +286,7 @@ class GameScene(Scene):
                     if len(self.user_guess) == 0:
                         self.user_guess = '-'
                     elif self.user_guess[0] == '-':
+                        # if user_guess is already negative remove negative
                         self.user_guess = self.user_guess[1:]
                     else:
                         self.user_guess = '-' + self.user_guess
@@ -244,6 +303,12 @@ class GameScene(Scene):
         pass
 
     def Render(self, screen):
+        """
+        Render all text to given surface.
+
+        param screen: a pygame display that is passed in from main.
+        """
+
         # render all GameText objects and change positioning of GameText rects
         self.score_text.render()
         self.score_text.rect.center = (350, 200)
@@ -264,52 +329,108 @@ class GameScene(Scene):
             screen.fill((255, 255, 255))
 
         # display all text on screen
+
+        # use wrap_text for expression_text, to stop it from going off screen
         wrap_text(screen, self.base_font,
                   self.expression_text.text, (40, 250), 590)
-        # screen.blit(self.expression_text.surface, self.expression_text.rect)
 
         screen.blit(self.user_text.surface, self.user_text.rect)
         screen.blit(self.score_text.surface, self.score_text.rect)
 
 
 class GameText():
+    """
+    Class that stores all necessary aspects to display pygame text.
+    """
+
     def __init__(self, font, text, antialias, colour):
+        """
+        Creates GameText() object with necessary variables
+
+        param font: font to render render text from
+        param text: text to render
+        param antialias: boolean, if True characters will have smooth edges
+        param colour: the colour of the text when it is rendered
+        """
         self.font = font
         self.text = text
         self.antialias = antialias
         self.colour = colour
+
+        # get surface of text from font.render and rect from said surface
         self.surface = self.font.render(
             self.text, self.antialias, self.colour)
         self.rect = self.surface.get_rect()
 
     def render(self):
+        """
+        To be used after text is changed. Reset surface and rect to be based
+        on newly given text.
+        """
         self.surface = self.font.render(
             self.text, self.antialias, self.colour)
         self.rect = self.surface.get_rect()
 
 
 class RectButton():
+    """
+    Class for a pygame rectangular button.
+    """
+
     def __init__(self, font, pos, background, text_colour, text=""):
+        """
+        Creates a RectButton() object with necessary variables
+
+        param font: font to render button text from
+        param pos: position to draw button at (topleft coordinate)
+        param background: colour of button rectangle
+        param text: text inside button, default is empty string
+        """
         self.font = font
         self.pos = pos
         self.background = background
+
+        # make use of GameText object to store text for button
         self.text = GameText(self.font, text, False, text_colour)
         self.text.rect.topleft = self.pos
-        self.rect = py.Rect(self.pos, self.text.surface.get_size())
 
     def click_handler(self, mouse_pos):
-        if self.rect.collidepoint(mouse_pos):
+        """
+        Detects if the button is clicked on
+
+        param mouse_pos: the position of the mouse during the click
+        """
+        if self.text.rect.collidepoint(mouse_pos):
             return True
 
         return False
 
     def Render(self, screen):
-        py.draw.rect(screen, self.background, self.rect)
+        """
+        Render button text and draw rectangle to given surface.
+
+        param screen: a pygame display.
+        """
+        py.draw.rect(screen, self.background, self.text.rect)
         screen.blit(self.text.surface, self.text.rect)
 
 
 class InputBox():
+    """
+    Class for a pygame text input box.
+    """
+
     def __init__(self, rect, active_colour, passive_colour, font, text_limit=None):
+        """
+        Creates a InputBox() object with necessary variables
+
+        param rect: pygame.Rect that defines the size and position of the input box
+        param active_colour: the colour of the InputBox when it's in use
+        param passive_colour: the colour of the InputBox when it isn't in use
+        param font: font to render inputted text from
+        param text_limit: the max number of character allowed in the InputBox,
+                            default to None
+        """
         self.rect = rect
         self.active_colour = active_colour
         self.passive_colour = passive_colour
@@ -322,6 +443,13 @@ class InputBox():
         self.text_limit = text_limit
 
     def ProcessInput(self, event):
+        """
+        Handles clicks on the InputBox and text input.
+
+        param events: a pygame event
+        """
+
+        # checks if the InputBox has been clicked into
         if event.type == py.MOUSEBUTTONDOWN:
             if self.rect.collidepoint(event.pos):
                 self.active = True
@@ -329,12 +457,20 @@ class InputBox():
                 self.active = False
 
         if event.type == py.KEYDOWN and self.active:
+            # remove a character on backspace
             if event.key == py.K_BACKSPACE:
                 self.text = self.text[:-1]
+            # only enter text if it's a digit and the if text_limit is not exceeded
             elif event.unicode.isdigit() and (self.text_limit is None or len(self.text) < self.text_limit):
                 self.text += event.unicode
 
     def Render(self, screen):
+        """
+        Render InputBox text and draw rectangle to given surface.
+
+        param screen: a pygame display.
+        """
+        # set colour of InputBox rect if it's active or not
         if self.active:
             self.colour = self.active_colour
         else:
@@ -352,19 +488,30 @@ class InputBox():
         self.rect.w = max(self.rect.w, text_surface.get_width() + 10)
 
 
-def evaluate_answer(e):
-    answer = mgt.evaluate_products_quotients(e)
+def evaluate_answer(exp):
+    """
+    Evaluate the answer of an expression
+
+    param exp: a math expression created from mgt.generate_expression
+    """
+    answer = mgt.evaluate_products_quotients(exp)
     return mgt.evaluate_sum_differences(answer)
 
 
 def main():
+    """
+    main function that handles creation of display and game loop.
+    """
     screen = py.display.set_mode((700, 750))
     clock = py.time.Clock()
 
+    # keeps track of which scene the game is in
     active_scene = MenuScene()
 
     while True:
         active_scene = active_scene.next
+
+        # all events that should be passed into Scene.ProcessInput()
         filtered_events = []
         for e in py.event.get():
             if e.type == py.QUIT:
@@ -376,6 +523,7 @@ def main():
 
         screen.fill((255, 255, 255))
 
+        # call all Scene methods to handle events and render to screen
         active_scene.ProcessInput(filtered_events)
         active_scene.Update()
         active_scene.Render(screen)
@@ -388,4 +536,3 @@ def main():
 if __name__ == '__main__':
     py.init()
     main()
-    sys.exit()
