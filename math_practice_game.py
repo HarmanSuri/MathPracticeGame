@@ -201,13 +201,18 @@ class GameScene(Scene):
         self.num_terms = num_terms
         self.term_range = term_range
 
-        # basic font for all text
+        # font for all text
         self.base_font = py.font.Font(None, 100)
+        self.answer_font = py.font.Font(None, 50)
 
         self.expression_list = mgt.generate_expression(
-            3, self.ops, self.term_range)
+            self.num_terms, self.ops, self.term_range)
         # answer of the expression
         self.answer = round(evaluate_answer(self.expression_list)[0], 2)
+
+        self.answer_text = GameText(
+            self.answer_font, "ANSWER WAS", False, (0, 0, 0))
+        self.answer_text.rect.center = (350, 110)
 
         # expression put into a string
         self.expression = mgt.display_expression(
@@ -220,12 +225,12 @@ class GameScene(Scene):
         # correct text
         self.correct_text = GameText(
             self.base_font, 'CORRECT!', False, (0, 255, 0))
-        self.correct_text.rect.center = (350, 100)
+        self.correct_text.rect.center = (350, 50)
 
         # incorrect text
         self.incorrect_text = GameText(
             self.base_font, 'INCORRECT!', False, (255, 0, 0))
-        self.incorrect_text.rect.center = (350, 100)
+        self.incorrect_text.rect.center = (350, 50)
 
         # score text
         self.score = 0
@@ -262,6 +267,7 @@ class GameScene(Scene):
                     else:
                         self.guess_correct = False
 
+                    self.answer_text.text = f'ANSWER WAS {self.answer}'
                     # regardless of correctness of guess, reset guess text
                     self.user_guess = ''
 
@@ -310,6 +316,9 @@ class GameScene(Scene):
         """
 
         # render all GameText objects and change positioning of GameText rects
+        self.answer_text.render()
+        self.answer_text.rect.center = (350, 110)
+
         self.score_text.render()
         self.score_text.rect.center = (350, 200)
 
@@ -334,6 +343,7 @@ class GameScene(Scene):
         wrap_text(screen, self.base_font,
                   self.expression_text.text, (40, 250), 590)
 
+        screen.blit(self.answer_text.surface, self.answer_text.rect)
         screen.blit(self.user_text.surface, self.user_text.rect)
         screen.blit(self.score_text.surface, self.score_text.rect)
 
